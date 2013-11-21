@@ -46,7 +46,7 @@
 			
         </style>
 
-        <script type="text/javascript" src="../../../dojo/dojo.js" data-dojo-config="isDebug: true, parseOnLoad: true"></script>
+        <script type="text/javascript" src="../../../dojo/dojo.js" djConfig="isDebug: true, parseOnLoad: true"></script>
         <script type="text/javascript">
             dojo.require("dijit.dijit");
             dojo.require("dojox.charting.Chart");
@@ -203,10 +203,10 @@
 					addAxis("y",{natual: true, includeZero: true, majorTickStep:1, vertical: true}).
 					addAxis("x",{natual: true}).
 					addSeries("A",[1,3,5,7,2,4,6]).
-					addSeries("B",[2,4,6,8,3,5,7], {hidden: true}).
+					addSeries("B",[2,4,6,8,3,5,7], {hide: true}).
 					addSeries("C",[6,4,2,7,5,3,1]).
 					render();
-				var stackedColumnsLegend = new dojox.charting.widget.SelectableLegend({chart: stackedColumns, autoScale: true},"stackedColumnsLegend");
+				var stackedColumnsLegend = new dojox.charting.widget.SelectableLegend({chart: stackedColumns, autoScale: true},"stackedColumnsLegend");	
 				
 				var linesColumns = new dojox.charting.Chart("linesColumns").
 					setTheme(dojox.charting.themes.MiamiNice).
@@ -215,7 +215,7 @@
 					addAxis("y",{natural: true, vertical:true,includeZero: true}).
 					addAxis("x",{natural: true,includeZero: true}).
 					addSeries("A",[2,4,6,8,3,5,7]).
-					addSeries("B",[1,3,5,7,2,4,6],{plot:"lines", hidden: true}).
+					addSeries("B",[1,3,5,7,2,4,6],{plot:"lines", hide: true}).
 					render();
 				var linesColumnsLegend = new dojox.charting.widget.SelectableLegend({chart: linesColumns},"linesColumnsLegend");
 				
@@ -231,7 +231,7 @@
 	                }, {
 	                    y: 2.66,
 	                    text: "USA",
-	                    hidden: true
+	                    hide: true
 	                }, {
 	                    y: 2.06,
 	                    text: "Indonesia"
@@ -249,7 +249,7 @@
 	                    text: "Japan"
 	                }]).
 					render();
-				var ainm = new dojox.charting.action2d.Highlight(pie,"default");
+				//var ainm = new dojox.charting.action2d.Highlight(pie,"default");
 				var pieLegend = new dojox.charting.widget.SelectableLegend({chart: pie,horizontal:false, outline: true},"pieLegend");
 				
 				var bubble = new dojox.charting.Chart("bubble").
@@ -258,7 +258,7 @@
 					addAxis("x",{natual:true, includeZero: true, max:7}).
 					addAxis("y",{natual:true, vertical: true, includeZero: true,max:10}).
 					addSeries("A",[{x:3,y:5,size:1},{x:1,y:7,size:1},{x:4,y:2,size:3}]).
-					addSeries("B",[{x:5,y:5,size:2},{x:2,y:3,size:4},{x:6,y:2,size:1}], {hidden: true}).
+					addSeries("B",[{x:5,y:5,size:2},{x:2,y:3,size:4},{x:6,y:2,size:1}], {hide: true}).
 					addSeries("C",[{x:2,y:7,size:3},{x:6,y:8,size:3}]).
 					render();
 				var bubbleLegend = new dojox.charting.widget.SelectableLegend({chart: bubble, horizontal:false, outline:true},"bubbleLegend");
@@ -279,8 +279,8 @@
 					})
 					.addSeries("China", {data: {"GDP": 2,"area": 6,"population": 2000,"inflation": 15,"growth": 12}}, { fill: "blue" })
 					.addSeries("France", {data: {"GDP": 6,"area": 15,"population": 500,"inflation": 5,"growth": 6}}, { fill: "red" })
-					.addSeries("USA", {data: {"GDP": 3,"area": 20,"population": 1500,"inflation": 10,"growth": 3}}, { fill: "green", hidden: true })
-					.addSeries("Japan", {data: {"GDP": 4,"area": 2,"population": 1000,"inflation": 20,"growth": 2}}, { fill: "yellow", hidden: true })
+					.addSeries("USA", {data: {"GDP": 3,"area": 20,"population": 1500,"inflation": 10,"growth": 3}}, { fill: "green", hide: true })
+					.addSeries("Japan", {data: {"GDP": 4,"area": 2,"population": 1000,"inflation": 20,"growth": 2}}, { fill: "yellow", hide: true })
 					.addSeries("Korean", {data: {"GDP": 10,"area": 10,"population": 800,"inflation": 2,"growth": 18}}, { fill: "orange" })
 					.addSeries("Canada", {data: {"GDP": 1,"area": 18,"population": 300,"inflation": 3,"growth": 15}}, { fill: "purple" })
 					.render();

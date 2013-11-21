@@ -213,7 +213,6 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 							var rect = {
 								x: offsets.l + (val.y < baseline ? hv : baselineWidth),
 								y: dim.height - offsets.b - vt(val.x + 1.5) + bar.gap + bar.thickness * (actualLength - z - 1),
-								// y: dim.height - offsets.b - vt(val.x + 1.5) + bar.gap + bar.thickness * z,
 								width: w,
 								height: bar.height
 							};

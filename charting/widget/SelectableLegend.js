@@ -111,6 +111,7 @@ define(["dojo/_base/array",
 			this.legendAnim = {};
 			this._cbs = [];
 			this.inherited(arguments);
+			this.legendHighligthHandler = [];
 		},
 		refresh: function(){
 			this.legends = [];
@@ -131,6 +132,7 @@ define(["dojo/_base/array",
 			var legendNodes = query("td", this.legendBody);
 			var currentLegendNode = legendNodes[legendNodes.length - 1];
 			this.legends.push(currentLegendNode);
+			
 			var checkbox = new CheckBox({checked: true});
 			this._cbs.push(checkbox);
 			dom.place(checkbox.domNode, currentLegendNode, "first");
@@ -174,7 +176,7 @@ define(["dojo/_base/array",
 					});
 				}, this);
 			},this);
-		},
+		},		
 		_isHidden: function(plotName, index){
 			if(this._isPie()){
 				return this.chart.getPlot(plotName).runFilter.indexOf(index) != -1;
@@ -286,6 +288,7 @@ define(["dojo/_base/array",
 		destroy: function(){
 			this._clearLabels();
 			this.inherited(arguments);
+
 		}
 	});
 	
