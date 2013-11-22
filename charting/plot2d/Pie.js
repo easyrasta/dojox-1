@@ -284,7 +284,7 @@ define(["dojo/_base/lang", "dojo/_base/array" ,"dojo/_base/declare",
 			}
 
 			// draw slices
-			var eventSeries = new Array(slices.length);	
+			var eventSeries = new Array(slices.length);
 			arr.some(slices, function(slice, i){
 				if(slice < 0){
 					// degenerated slice
