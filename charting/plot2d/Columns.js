@@ -149,13 +149,9 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 						
 						if(bar.width >= 1 && h >= 0){
 							var rect = {
-								x: offsets.l + ht(val.x + 0.5) + bar.gap + bar.thickness * (length - z - 1),
+								x: offsets.l + ht(val.x + 0.5) + bar.gap + bar.thickness * z,
 								y: dim.height - offsets.b - (val.y > baseline ? vv : baselineHeight),
-<<<<<<< HEAD
 								width: bar.width, 
-=======
-								width: bar.width - bar.gap/2, 
->>>>>>> fix columns & bars
 								height: h
 							};
 							if(finalTheme.series.shadow){
@@ -225,11 +221,10 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				x = j;
 			}else{
 				y = value.y;
-				x = value.x-1;
+				x = value.x - 1;
 			}
 			return { x: x, y: y };
 		},
-		
 		getBarProperties: function(){
 			var f = dc.calculateBarSize(this._hScaler.bounds.scale, this.opt);
 			return {gap: f.gap, width: f.size, thickness: 0};
