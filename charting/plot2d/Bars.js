@@ -160,12 +160,16 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				events = this.events();
 			var bar = this.getBarProperties();
 
-			var actualLength = this.series.length;
-			arr.forEach(this.series, function(serie){if(serie.hidden){actualLength--;}});
-			var z = actualLength;
+			var realLength = this.series.length;
+			arr.forEach(this.series, function(serie){if(serie.hidden){realLength--;}});
+			var z = realLength;
+			for(var i = this.series.length - 1; i >= 0; --i){
 				var run = this.series[i];
+				if(!this.dirty && !run.dirty){
+					t.skip();
+					this._reconnectEvents(run.name);
 					continue;
-				}
+                }
 				run.cleanGroup();
 				if(this.opt.enableCache){
 					run._rectFreePool = (run._rectFreePool?run._rectFreePool:[]).concat(run._rectUsePool?run._rectUsePool:[]);
@@ -208,7 +212,7 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 						if(w >= 0 && bar.height >= 1){
 							var rect = {
 								x: offsets.l + (val.y < baseline ? hv : baselineWidth),
-								y: dim.height - offsets.b - vt(val.x + 1.5) + bar.gap + bar.thickness * (actualLength - z - 1),
+								y: dim.height - offsets.b - vt(val.x + 1.5) + bar.gap + bar.thickness * (realLength - z - 1),
 								width: w,
 								height: bar.height
 							};
