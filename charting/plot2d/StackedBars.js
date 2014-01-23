@@ -10,8 +10,11 @@ define(["dojo/_base/declare", "./Bars", "./commonStacked"],
 			// returns: Object
 			//		{hmin, hmax, vmin, vmax} min/max in both directions.
 			var stats = commonStacked.collectStats(this.series), t;
+			//stats = this._adjustStats(stats);
 			stats.hmin -= 0.5;
 			stats.hmax += 0.5;
+			//this._maxRunLength = stats.hmax;
+			stats = this._adjustStats(stats);
 			t = stats.hmin, stats.hmin = stats.vmin, stats.vmin = t;
 			t = stats.hmax, stats.hmax = stats.vmax, stats.vmax = t;
 			return stats; // Object
@@ -19,15 +22,14 @@ define(["dojo/_base/declare", "./Bars", "./commonStacked"],
 		getValue: function(value, index, seriesIndex, indexed){
 			var y,x;
 			if(indexed){
-				x = index;
-				y = commonStacked.getIndexValue(this.series, seriesIndex, x);
+				x = index+1;
+				y = commonStacked.getIndexValue(this.series, seriesIndex, index);
 			}else{
-				x = value.x - 1;
+				x = value.x;
 				y = commonStacked.getValue(this.series, seriesIndex, value.x);
-				y = [  y[0]?y[0].y:null, y[1]?y[1]:null ];
+				y = y ? y.y: null;
 			}
-			// in py we return the previous stack value as we need it to position labels on columns
-			return { x: x, y: y[0], py: y[1] };
+			return {y:y, x:x};
 		}
 	});
 });

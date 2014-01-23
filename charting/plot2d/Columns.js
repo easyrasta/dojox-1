@@ -1,6 +1,6 @@
-define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has", "./CartesianBase", "./_PlotEvents", "./common",
+define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "./CartesianBase", "./_PlotEvents", "./common",
 		"dojox/lang/functional", "dojox/lang/functional/reversed", "dojox/lang/utils", "dojox/gfx/fx"], 
-	function(lang, arr, declare, has, CartesianBase, _PlotEvents, dc, df, dfr, du, fx){
+	function(lang, arr, declare, CartesianBase, _PlotEvents, dc, df, dfr, du, fx){
 
 	var purgeGroup = dfr.lambda("item.purgeGroup()");
 
@@ -8,6 +8,8 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 		// summary:
 		//		The plot object representing a column chart (vertical bars).
 		defaultParams: {
+			hAxis: "x",		// use a horizontal axis named "x"
+			vAxis: "y",		// use a vertical axis named "y"
 			gap:	0,		// gap between columns in pixels
 			animate: null,  // animate bars into place
 			enableCache: false
@@ -20,7 +22,6 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 			outline:	{},
 			shadow:		{},
 			fill:		{},
-			filter:     {},
 			styleFunc:  null,
 			font:		"",
 			fontColor:	""
@@ -33,9 +34,12 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 			//		The chart this plot belongs to.
 			// kwArgs: dojox.charting.plot2d.__BarCtorArgs?
 			//		An optional keyword arguments object to help define the plot.
-			this.opt = lang.clone(lang.mixin(this.opt, this.defaultParams));
+			this.opt = lang.clone(this.defaultParams);
 			du.updateWithObject(this.opt, kwArgs);
 			du.updateWithPattern(this.opt, kwArgs, this.optionalParams);
+			this.series = [];
+			this.hAxis = this.opt.hAxis;
+			this.vAxis = this.opt.vAxis;
 			this.animate = this.opt.animate;
 		},
 
@@ -45,6 +49,35 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 			// returns: Object
 			//		{hmin, hmax, vmin, vmax} min/max in both directions.
 			var stats = dc.collectSimpleStats(this.series);
+			return this._adjustStats(stats);
+		},
+		
+		_adjustStats: function(stats){
+			//TODO adjust stats with bar width
+			// but it induces problems with zoom
+			/*
+			if(this._hScaler){
+				var bar = this.getBarProperties();
+				var width = this._hScaler.scaler.getTransformerFromPlot(this._hScaler)(bar.width*bar.clusterSize)
+				stats.hmin -= width/2;
+				stats.hmax += width/2;
+			}
+			*/
+			/*
+			var t = {min: (stats.hmin - width/2), max:  (stats.max + width/2)};
+			if(t.min < this._hScaler.bounds.lower){
+				stats.hmin = this._hScaler.bounds.lower;
+			}else{
+				stats.hmin = t.min;
+			}
+			if(t.max > this._hScaler.bounds.lower){
+				stats.hmax = this._hScaler.bounds.upper;
+			}else{
+				stats.hmax = t.max;
+			}
+			return stats;
+			*/
+				
 			stats.hmin -= 0.5;
 			stats.hmax += 0.5;
 			return stats; // Object
@@ -78,6 +111,8 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 			if(this.zoom && !this.isDataDirty()){
 				return this.performZoom(dim, offsets);
 			}
+			// TODO do we need to call this? This is not done in Bars.js
+			//this.getSeriesStats();
 			this.resetEvents();
 			this.dirty = this.isDirty();
 			var s;
@@ -85,7 +120,7 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				arr.forEach(this.series, purgeGroup);
 				this._eventSeries = {};
 				this.cleanGroup();
-				s = this.getGroup();
+				s = this.group;
 				df.forEachRev(this.series, function(item){ item.cleanGroup(s); });
 			}
 			var t = this.chart.theme,
@@ -93,11 +128,11 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				vt = this._vScaler.scaler.getTransformerFromModel(this._vScaler),
 				baseline = Math.max(0, this._vScaler.bounds.lower),
 				baselineHeight = vt(baseline),
-				events = this.events(),
-				bar = this.getBarProperties();
-			
-			var z = this.series.length;
-			arr.forEach(this.series, function(serie){if(serie.hidden){z--;}});
+				events = this.events();
+			var bar = this.getBarProperties();
+			var length = this.series.length; 
+			arr.forEach(this.series, function(serie){if(serie.hide){length--;}}); 
+			var z = length; 
 
 			for(var i = this.series.length - 1; i >= 0; --i){
 				var run = this.series[i];
@@ -113,13 +148,12 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				}
 				var theme = t.next("column", [this.opt, run]),
 					eventSeries = new Array(run.data.length);
-
-				if(run.hidden){
-					run.dyn.fill = theme.series.fill;
-					continue;
-				}
-				z--;
-
+				
+				 if(run.hide){ 
+					 run.dyn.fill = theme.series.fill; 
+					 continue; 
+				} 
+				z--; 
 				s = run.group;
 				var indexed = arr.some(run.data, function(item){
 					return typeof item == "number" || (item && !item.hasOwnProperty("x"));
@@ -136,7 +170,9 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 							h = Math.abs(vv - baselineHeight), 
 							finalTheme,
 							sshape;
-						
+						if(val.x < this._hScaler.bounds.from - 1 || val.x > this._hScaler.bounds.to){
+							continue;
+						}
 						if(this.opt.styleFunc || typeof value != "number"){
 							var tMixin = typeof value != "number" ? [value] : [];
 							if(this.opt.styleFunc){
@@ -146,14 +182,14 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 						}else{
 							finalTheme = t.post(theme, "column");
 						}
-						
 						if(bar.width >= 1 && h >= 0){
 							var rect = {
-								x: offsets.l + ht(val.x + 0.5) + bar.gap + bar.thickness * z,
+								x: offsets.l + ht(val.x) - (bar.width/2) + (bar.gap/2) - bar.thickness*(length-1)/2  + bar.thickness * z,
 								y: dim.height - offsets.b - (val.y > baseline ? vv : baselineHeight),
-								width: bar.width, 
+								width: bar.width - bar.gap/2, 
 								height: h
 							};
+							
 							if(finalTheme.series.shadow){
 								var srect = lang.clone(rect);
 								srect.x += finalTheme.series.shadow.dx;
@@ -167,9 +203,6 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 							var specialFill = this._plotFill(finalTheme.series.fill, dim, offsets);
 							specialFill = this._shapeFill(specialFill, rect);
 							var shape = this.createRect(run, s, rect).setFill(specialFill).setStroke(finalTheme.series.stroke);
-							if(shape.setFilter && finalTheme.series.filter){
-								shape.setFilter(finalTheme.series.filter);
-							}
 							run.dyn.fill   = shape.getFill();
 							run.dyn.stroke = shape.getStroke();
 							if(events){
@@ -179,20 +212,12 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 									run:     run,
 									shape:   shape,
 									shadow:  sshape,
-									cx:      val.x + 0.5,
-									cy:      val.y,
-									x:	     indexed?j:run.data[j].x,
-									y:	 	 indexed?run.data[j]:run.data[j].y
+									x:       val.x - 0.5,
+									y:       val.y
 								};
 								this._connectEvents(o);
 								eventSeries[j] = o;
 							}
-							// if val.py is here, this means we are stacking and we need to subtract previous
-							// value to get the high in which we will lay out the label
-							if(!isNaN(val.py) && val.py > baseline){
-								rect.height = vv - vt(val.py);
-							}
-							this.createLabel(s, value, rect, finalTheme);
 							if(this.animate){
 								this._animateColumn(shape, dim.height - offsets.b - baselineHeight, h);
 							}
@@ -203,11 +228,6 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				run.dirty = false;
 			}
 			this.dirty = false;
-			// chart mirroring starts
-			if(has("dojo-bidi")){
-				this._checkOrientation(this.group, dim, offsets);
-			}
-			// chart mirroring ends
 			return this;	//	dojox/charting/plot2d/Columns
 		},
 		getValue: function(value, j, seriesIndex, indexed){
@@ -218,17 +238,49 @@ define(["dojo/_base/lang", "dojo/_base/array", "dojo/_base/declare", "dojo/has",
 				}else{
 					y = value.y;
 				}
-				x = j;
+				x = j+1;
 			}else{
 				y = value.y;
-				x = value.x - 1;
+				x = value.x;
 			}
-			return { x: x, y: y };
+			return {y:y, x:x};
 		},
+		
+		_getDelta: function(){
+			var delta = Number.MAX_VALUE;
+			
+			for(var i = 0; i < this.series.length; ++i){
+				var serie = this.series[i];
+				if(serie.hide){
+					continue;
+				}
+				var previousData = null;
+				for(var j = 0; j < serie.data.length; ++j){
+					var data = serie.data[j];
+					if(typeof data == "number"){
+						delta = 1;
+						break;
+					}
+					if(!previousData){
+						previousData = data;
+					}else{
+						if(data){
+							var tdelta = data.x - previousData.x;
+							delta = Math.min(delta, tdelta);
+							previousData = data;
+						}
+					}
+				}
+			}
+			return delta;
+		},
+		
 		getBarProperties: function(){
-			var f = dc.calculateBarSize(this._hScaler.bounds.scale, this.opt);
-			return {gap: f.gap, width: f.size, thickness: 0};
+			var delta = this._getDelta();
+			var bar = dc.calculateBarSize(delta*this._hScaler.bounds.scale, this.opt);
+			return {gap: bar.gap, width: bar.size, thickness: 0, clusterSize: 1};
 		},
+		
 		_animateColumn: function(shape, voffset, vsize){
 			if(vsize==0){
 				vsize = 1;
